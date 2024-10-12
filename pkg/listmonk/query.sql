@@ -6,7 +6,7 @@ ON CONFLICT (id) DO UPDATE
 RETURNING *;
 
 -- name: FindSubscriberByEmail :one
-SELECT * FROM subscribers WHERE email = $1;
+SELECT * FROM subscribers WHERE LOWER(email) = LOWER($1);
 
 -- name: SubscribeList :one
 INSERT INTO subscriber_lists (subscriber_id, list_id, status) 

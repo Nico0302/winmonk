@@ -33,8 +33,17 @@ func main() {
 	winestro := winestro.NewClient(uid, os.Getenv("WBO_API_USER"), os.Getenv("WBO_API_CODE"), shopID)
 	queries := listmonk.New(conn)
 
+	groupID, err := strconv.Atoi(os.Getenv("WBO_GROUP_ID"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	listID, err := strconv.Atoi(os.Getenv("LISTMONK_LIST_ID"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	client := sync.NewClient(winestro, queries)
-	err = client.ImportContacts(ctx, 52, 1)
+	err = client.ImportContacts(ctx, groupID, listID)
 	if err != nil {
 		log.Fatal(err)
 	}

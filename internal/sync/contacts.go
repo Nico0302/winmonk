@@ -31,9 +31,11 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 
 	r := regexp.MustCompile(`^[^@]+@[^@]+\.[^@]+$`)
 
+	count := 0
+
 	for _, customer := range customers {
 		if customer.Email == "" || !r.MatchString(customer.Email) {
-			log.Default().Printf("Skipping customer %s (%s) with invalid email %s", customer.FullName(), customer.Number, customer.Email)
+			log.Default().Printf("Invalid Email: %s (%s) - %s", customer.FullName(), customer.Number, customer.Email)
 			continue
 		}
 
@@ -62,7 +64,7 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 		})
 		if err != nil {
 			if strings.Contains(err.Error(), "subscribers_email_key") || strings.Contains(err.Error(), "idx_subs_email") {
-				log.Default().Printf("Skipping customer %s (%s) with duplicate email %s", customer.FullName(), customer.Number, customer.Email)
+				log.Default().Printf("Duplicate Email: %s (%s) - %s", customer.FullName(), customer.Number, customer.Email)
 
 				// Check if we need to unsubscribe the original email holder
 				if customer.NewsletterActive {
@@ -70,7 +72,7 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 				}
 				sub, err := c.listmonk.FindSubscriberByEmail(ctx, customer.Email)
 				if err != nil {
-					return err
+					continue
 				}
 				_, err = c.listmonk.SubscribeList(ctx, listmonk.SubscribeListParams{
 					SubscriberID: sub.ID,
@@ -78,11 +80,12 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 					Status:       listmonk.SubscriptionStatusUnsubscribed,
 				})
 				if err != nil {
-					return err
+					continue
 				}
 
 				continue
 			}
+			log.Default().Printf("Error: %s (%s) - %s: %s", customer.FullName(), customer.Number, customer.Email, err)
 			return err
 		}
 
@@ -97,7 +100,11 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 			ListID:       int32(listID),
 			Status:       status,
 		})
+
+		count++
 	}
+
+	log.Default().Printf("Imported %d contacts", count)
 
 	return nil
 }

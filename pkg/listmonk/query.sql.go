@@ -10,11 +10,11 @@ import (
 )
 
 const findSubscriberByEmail = `-- name: FindSubscriberByEmail :one
-SELECT id, uuid, email, name, attribs, status, created_at, updated_at FROM subscribers WHERE email = $1
+SELECT id, uuid, email, name, attribs, status, created_at, updated_at FROM subscribers WHERE LOWER(email) = LOWER($1)
 `
 
-func (q *Queries) FindSubscriberByEmail(ctx context.Context, email string) (Subscriber, error) {
-	row := q.db.QueryRow(ctx, findSubscriberByEmail, email)
+func (q *Queries) FindSubscriberByEmail(ctx context.Context, lower string) (Subscriber, error) {
+	row := q.db.QueryRow(ctx, findSubscriberByEmail, lower)
 	var i Subscriber
 	err := row.Scan(
 		&i.ID,
