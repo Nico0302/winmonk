@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "pkg/listmonk/query.sql"
+    schema: "pkg/listmonk/schema.sql"
+    gen:
+      go:
+        package: "listmonk"
+        out: "pkg/listmonk"
+        sql_package: "pgx/v5"
