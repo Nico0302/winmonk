@@ -13,4 +13,5 @@ INSERT INTO subscriber_lists (subscriber_id, list_id, status)
 VALUES ($1, $2, $3)
 ON CONFLICT (subscriber_id, list_id) DO UPDATE 
   SET status = excluded.status
+  WHERE subscriber_lists.status != 'unsubscribed'
 RETURNING *;
