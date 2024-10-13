@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/nico0302/go-winestro"
 	"github.com/nico0302/winmonk/internal/sync"
 	"github.com/nico0302/winmonk/pkg/listmonk"
-	"github.com/nico0302/winmonk/pkg/winestro"
 )
 
 func main() {

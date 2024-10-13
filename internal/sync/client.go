@@ -1,8 +1,8 @@
 package sync
 
 import (
+	"github.com/nico0302/go-winestro"
 	"github.com/nico0302/winmonk/pkg/listmonk"
-	"github.com/nico0302/winmonk/pkg/winestro"
 )
 
 type Client struct {
