@@ -7,6 +7,8 @@ package listmonk
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const findSubscriberByEmail = `-- name: FindSubscriberByEmail :one
@@ -27,6 +29,41 @@ func (q *Queries) FindSubscriberByEmail(ctx context.Context, lower string) (Subs
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const findSubscribersUpdatedBefore = `-- name: FindSubscribersUpdatedBefore :many
+SELECT id, uuid, email, name, attribs, status, created_at, updated_at FROM subscribers 
+WHERE updated_at < $1
+ORDER BY updated_at ASC
+`
+
+func (q *Queries) FindSubscribersUpdatedBefore(ctx context.Context, updatedAt pgtype.Timestamptz) ([]Subscriber, error) {
+	rows, err := q.db.Query(ctx, findSubscribersUpdatedBefore, updatedAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Subscriber
+	for rows.Next() {
+		var i Subscriber
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uuid,
+			&i.Email,
+			&i.Name,
+			&i.Attribs,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setSubscriber = `-- name: SetSubscriber :one

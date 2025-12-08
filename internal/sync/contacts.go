@@ -6,7 +6,9 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nico0302/winmonk/pkg/listmonk"
 )
 
@@ -32,6 +34,10 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 	r := regexp.MustCompile(`^[^@]+@[^@]+\.[^@]+$`)
 
 	count := 0
+
+	// Current timestamp minus 1 minute
+	updateCutoff := pgtype.Timestamptz{}
+	updateCutoff.Time = time.Now().Add(-1 * time.Minute)
 
 	for _, customer := range customers {
 		if customer.Email == "" || !r.MatchString(customer.Email) {
@@ -102,6 +108,23 @@ func (c *Client) ImportContacts(ctx context.Context, winGroupID int, listID int)
 		})
 
 		count++
+	}
+
+	// Unsubscribe all contacts which were not updated in this run
+	subscribers, err := c.listmonk.FindSubscribersUpdatedBefore(ctx, updateCutoff)
+	if err != nil {
+		return err
+	}
+	for _, sub := range subscribers {
+		log.Default().Printf("Unsubscribing stale contact: %s - %s", sub.Name, sub.Email)
+		// _, err = c.listmonk.SubscribeList(ctx, listmonk.SubscribeListParams{
+		// 	SubscriberID: sub.ID,
+		// 	ListID:       int32(listID),
+		// 	Status:       listmonk.SubscriptionStatusUnsubscribed,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	log.Default().Printf("Imported %d contacts", count)

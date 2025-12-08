@@ -15,3 +15,8 @@ ON CONFLICT (subscriber_id, list_id) DO UPDATE
   SET status = excluded.status
   WHERE subscriber_lists.status != 'unsubscribed'
 RETURNING *;
+
+-- name: FindSubscribersUpdatedBefore :many
+SELECT * FROM subscribers 
+WHERE updated_at < $1
+ORDER BY updated_at ASC;
